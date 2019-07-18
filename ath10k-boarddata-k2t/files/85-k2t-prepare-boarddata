@@ -1,0 +1,23 @@
+. /lib/functions/k2t.sh
+
+do_prepare_k2t_boarddata() {
+    fw_dir='/lib/firmware/ath10k/QCA9888/hw2.0'
+
+	[[ -L ${fw_dir}/board-2.bin ]] && return
+
+	hw_ver=$(k2t_get_mac hw_ver)
+	cfg_addr_f56=$(hexdump -s 0x7510 -n16 $(find_mtd_part art) | awk '{print $6$7$8$9}')
+
+	case ${cfg_addr_f56} in
+		"0000000000000000")	
+            board_file=ath10k-boarddata_${hw_ver}_noPAline.bin
+			;;
+		*)
+            board_file=ath10k-boarddata_${hw_ver}.bin
+			;;
+	esac
+
+	ln -sf ${fw_dir}/k2t/${board_file} ${fw_dir}/board-2.bin
+}
+
+boot_hook_add preinit_main do_prepare_k2t_boarddata
